@@ -10,6 +10,9 @@ inputs:
   build-identifier:
     description: Content of build label attached to every instance and ssh-key for identifying resources (for cleanup)
     required: true
+  trigger-payload:
+    description: Payload provided by workflow trigger
+    required: false
 runs:
   using: composite
   steps:
@@ -29,9 +32,23 @@ runs:
       id: validate
       shell: bash
       run: |
-        packer validate -var hcloud_token=${{ inputs.token }} -var build_identifier=${{ inputs.build-identifier }} ${{ inputs.template }}
+        echo "Processing payload..."
+        additional_vars=""
+        for key in $(echo ${{ toJson(inputs.trigger-payload) }} | jq -r 'keys[]'); do
+          value=$(echo ${{ toJson(inputs.trigger-payload) }} | jq -r ".[$key]")
+          additional_vars+=" -var $key=$value"
+        done
+
+        packer validate -var hcloud_token=${{ inputs.token }} -var build_identifier=${{ inputs.build-identifier }} $additional_vars ${{ inputs.template }}
 
     - name: Run `packer build`
       shell: bash
       run: |
-        packer build -color=false -force -on-error=cleanup -var hcloud_token=${{ inputs.token }} -var build_identifier=${{ inputs.build-identifier }} -var github_branch=${{ github.ref_name }} -var version=latest ${{ inputs.template }}
+        echo "Processing payload..."
+        additional_vars=""
+        for key in $(echo ${{ toJson(inputs.trigger-payload) }} | jq -r 'keys[]'); do
+          value=$(echo ${{ toJson(inputs.trigger-payload) }} | jq -r ".[$key]")
+          additional_vars+=" -var $key=$value"
+        done
+
+        packer build -color=false -force -on-error=cleanup -var hcloud_token=${{ inputs.token }} -var build_identifier=${{ inputs.build-identifier }} -var github_branch=${{ github.ref_name }} -var version=latest $additional_vars ${{ inputs.template }}
