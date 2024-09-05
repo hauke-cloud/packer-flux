@@ -41,6 +41,21 @@ variable "instance_type" {
   default = "cx22"
 }
 
+variable "snapshot_name" {
+  type    = string
+}
+
+locals {
+  build_labels = {
+    "os-flavor"            = "ubuntu"
+    "packer.io/build.id"   = "${uuidv4()}"
+    "packer.io/build.time" = "{{timestamp}}"
+    "packer.io/version"    = "{{packer_version}}"
+    "branch"               = var.github_branch
+    "version"              = var.version
+  }
+}
+
 source "hcloud" "ubuntu" {
   token         = var.hcloud_token
   image         = var.instance_image
@@ -56,13 +71,8 @@ source "hcloud" "ubuntu" {
     build = var.build_identifier
   }
 
-  snapshot_name = "flux-worker-${var.github_branch}"
-  snapshot_labels = {
-    name    = "flux-worker",
-    version = var.version
-    builder = "packer",
-    branch  = var.github_branch
-  }
+  snapshot_name   = var.snapshot_name
+  snapshot_labels = local.build_labels
 }
 
 build {
