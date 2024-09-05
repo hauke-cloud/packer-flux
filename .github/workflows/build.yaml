@@ -54,7 +54,7 @@ jobs:
         with:
           template: ${{ needs.prepare.outputs.templatefile }}
           token: ${{ secrets.HCLOUD_TOKEN }}
-          build-identifier: github-actions-${{ github.run_number }}
+          build-identifier: github-actions-${{ github.repository_id }}-${{ github.run_number }}
           trigger-payload: ${{ github.event.client_payload }}
 
   build-home:
@@ -84,7 +84,7 @@ jobs:
         with:
           template: ${{ needs.prepare.outputs.templatefile }}
           token: ${{ secrets.HCLOUD_TOKEN }}
-          build-identifier: github-actions-${{ github.run_number }}
+          build-identifier: github-actions-${{ github.repository_id }}-${{ github.run_number }}
           trigger-payload: ${{ github.event.client_payload }}
 
   build-public:
@@ -114,7 +114,7 @@ jobs:
         with:
           template: ${{ needs.prepare.outputs.templatefile }}
           token: ${{ secrets.HCLOUD_TOKEN }}
-          build-identifier: github-actions-${{ github.run_number }}
+          build-identifier: github-actions-${{ github.repository_id }}-${{ github.run_number }}
           trigger-payload: ${{ github.event.client_payload }}
 
   cleanup-lab:
@@ -133,7 +133,7 @@ jobs:
         uses: ./.github/actions/cleanup
         with:
           token: ${{ secrets.HCLOUD_TOKEN }}
-          build-identifier: github-actions-${{ github.run_number }}
+          build-identifier: github-actions-${{ github.repository_id }}-${{ github.run_number }}
 
   cleanup-home:
     name: Clean up home resources
@@ -151,7 +151,7 @@ jobs:
         uses: ./.github/actions/cleanup
         with:
           token: ${{ secrets.HCLOUD_TOKEN }}
-          build-identifier: github-actions-${{ github.run_number }}
+          build-identifier: github-actions-${{ github.repository_id }}-${{ github.run_number }}
 
   cleanup-public:
     name: Clean up production resources
@@ -169,7 +169,7 @@ jobs:
         uses: ./.github/actions/cleanup
         with:
           token: ${{ secrets.HCLOUD_TOKEN }}
-          build-identifier: github-actions-${{ github.run_number }}
+          build-identifier: github-actions-${{ github.repository_id }}-${{ github.run_number }}
 
   cleanup-images-public:
     name: Clean up tangling images in production
