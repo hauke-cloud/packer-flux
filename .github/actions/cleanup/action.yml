@@ -1,0 +1,32 @@
+name: Clean Up Hetzner Resources
+description: Removes instances and ssh-keys matching the build label
+inputs:
+  token:
+    description: Token used to access Hetzner API
+    required: true
+  build-identifier:
+    description: Content of build label attached to every instance and ssh-key for identifying resources
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Set Up Hetzner CLI
+      uses: 3bit/setup-hcloud@v2
+
+    - name: Cleanup Hetzner Server
+      shell: bash
+      run: |
+        if [[ "$(hcloud server list -l build=${{ inputs.build-identifier}} -o noheader -o columns=name | wc -l)" -gt 0 ]]; then
+          hcloud server delete $(hcloud server list -l build=${{ inputs.build-identifier}} -o noheader -o columns=name)
+        fi
+      env:
+        HCLOUD_TOKEN: ${{ inputs.token }}
+
+    - name: Cleanup Hetzner SSH Keys
+      shell: bash
+      run: |
+        if [[ "$(hcloud ssh-key list -o noheader -l build=${{ inputs.build-identifier}} -o columns=name | wc -l)" -gt 0 ]]; then
+          hcloud ssh-key delete $(hcloud ssh-key list -l build=${{ inputs.build-identifier}} -o noheader -o columns=name)
+        fi
+      env:
+        HCLOUD_TOKEN: ${{ inputs.token }}
