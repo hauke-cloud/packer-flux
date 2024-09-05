@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+SCRIPT_DIR="$(
+	cd "$(dirname "$0")"
+	pwd -P
+)"
+
+function infoEcho() {
+	echo "INFO: ${1}"
+}
+
+function warningEcho() {
+	echo "WARNING: ${1}"
+}
+
+function errorInfo() {
+	echo "${1}" 1>&2
+	exit 1
+}
+
+function errorEcho() {
+	echo "ERROR: ${1}" 1>&2
+	exit 1
+}
+
+function errorUsage() {
+	echo ${1} 1>&2
+	usage
+	exit 1
+}
+
+# check prerequisites
+for cmd in kubectl; do
+	command -v ${cmd} >/dev/null || {
+		echo >&2 "${cmd} must be installed - exiting..."
+		exit 1
+	}
+done
+
+DEFAULT_KUBECONFIG="${HOME}/.kube/config"
+
+function usage() {
+	echo "Waits for kubernetes to become available."
+	echo "usage: $0 [options]"
+	echo ""
+	echo "        -k --kubeconfig               Path to the kubeconfig file (default: ${DEFAULT_KUBECONFIG}) (ENV: KUBECONFIG)"
+	echo "        -h  --help:                   Show this help"
+	echo ""
+	echo "environment variables:"
+	echo ""
+	echo "        KUBECONFIG:                   Path to the kubeconfig file (default: ${DEFAULT_KUBECONFIG})"
+}
+
+while [[ $# -gt 0 ]]; do
+	key="${1}"
+
+	case $key in
+	--kubeconfig | -k)
+		KUBECONFIG="${2}"
+		shift
+		shift
+		;;
+	--help | -h | help)
+		usage
+		exit 0
+		;;
+	*)
+		shift
+		;;
+	esac
+done
+
+# Assign default values if optional argument is empty
+for variable in KUBECONFIG; do
+	if [[ -z ${!variable} || ${!variable} == '<no value>' ]]; then
+		default_var_name="DEFAULT_${variable}"
+		export "${variable}=${!default_var_name}"
+	fi
+done
+
+# Abort if required argument is empty
+# for variable in PAT_TOKEN ORGANISATION FROM TO; do
+# 	if [[ -z ${!variable} || ${!variable} == '<no value>' ]]; then
+# 		errorUsage "${variable}"
+# 	fi
+# done
+
+# Wait for the Kubernetes cluster to be available
+while ! kubectl get nodes; do
+	infoEcho "Waiting for the Kubernetes cluster to be available..."
+	sleep 10
+done
+infoEcho "Kubernetes cluster is now available."
