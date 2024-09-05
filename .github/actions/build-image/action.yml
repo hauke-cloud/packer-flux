@@ -16,6 +16,13 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Prepare
+      shell: bash
+      run: |
+        image_name="$(echo $GITHUB_REPOSITORY | cut -d/ -f2 | sed -E 's/packer-//g')"
+        image_tag=${{ github.ref_name }}
+        echo "SNAPSHOT_NAME=$image_name-$image_tag" >> $GITHUB_ENV
+
     - name: Setup `packer`
       uses: hashicorp/setup-packer@main
       id: setup
@@ -39,7 +46,12 @@ runs:
           additional_vars+=" -var $key=$value"
         done
 
-        packer validate -var hcloud_token=${{ inputs.token }} -var build_identifier=${{ inputs.build-identifier }} $additional_vars ${{ inputs.template }}
+        packer validate \
+          -var hcloud_token=${{ inputs.token }} \
+          -var build_identifier=${{ inputs.build-identifier }} \
+          -var snapshot_name="${SNAPSHOT_NAME}" \
+          $additional_vars \
+          ${{ inputs.template }}
 
     - name: Run `packer build`
       shell: bash
@@ -51,4 +63,14 @@ runs:
           additional_vars+=" -var $key=$value"
         done
 
-        packer build -color=false -force -on-error=cleanup -var hcloud_token=${{ inputs.token }} -var build_identifier=${{ inputs.build-identifier }} -var github_branch=${{ github.ref_name }} -var version=latest $additional_vars ${{ inputs.template }}
+        packer build \
+          -color=false \
+          -force \
+          -on-error=cleanup \
+          -var hcloud_token=${{ inputs.token }} \
+          -var build_identifier=${{ inputs.build-identifier }} \
+          -var github_branch=${{ github.ref_name }} \
+          -var version=latest \
+          -var snapshot_name="${SNAPSHOT_NAME}" \
+          $additional_vars \
+          ${{ inputs.template }}

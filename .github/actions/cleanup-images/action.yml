@@ -18,7 +18,7 @@ runs:
           exit 1
         fi
 
-        snapshot_names=$(hcloud image list -o noheader -o columns=description -t snapshot | sort -u)
+        snapshot_names=$(hcloud image list -o noheader -o columns=description -t snapshot -l branch=${{ github.ref_name }} | sort -u)
 
         for snapshot_name in $snapshot_names; do
           snapshots=$(hcloud image list -s created -o noheader -o columns=id,description -t snapshot | grep "$snapshot_name")

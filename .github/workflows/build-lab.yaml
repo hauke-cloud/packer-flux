@@ -1,0 +1,75 @@
+name: hcp-packer
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+  push:
+    branches:
+      - dev
+
+  repository_dispatch:
+    types:
+      - trigger-dev
+
+jobs:
+  build:
+    name: Build image
+    environment: lab
+    runs-on: ubuntu-latest
+
+    if: github.event.schedule != '0 0 * * *'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup `butane`
+        shell: bash
+        run: |
+          if [[ ! -f /usr/local/bin/butane ]]; then
+            curl -L https://github.com/coreos/butane/releases/download/v0.21.0/butane-x86_64-unknown-linux-gnu -o /usr/local/bin/butane
+            chmod +x /usr/local/bin/butane
+          fi
+
+      - name: Build image
+        uses: ./.github/actions/build-image
+        with:
+          template: template.pkr.hcl
+          token: ${{ secrets.HCLOUD_TOKEN }}
+          build-identifier: github-actions-${{ github.repository_id }}-${{ github.run_number }}
+          trigger-payload: ${{ github.event.client_payload }}
+
+  cleanup:
+    name: Clean up resources from failed run
+    environment: lab
+    runs-on: ubuntu-latest
+
+    needs: build
+    if: failure()
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clean up resources after error
+        uses: ./.github/actions/cleanup
+        with:
+          token: ${{ secrets.HCLOUD_TOKEN }}
+          build-identifier: github-actions-${{ github.repository_id }}-${{ github.run_number }}
+
+  expire:
+    name: Clean up tangling images in production
+    environment: lab
+    runs-on: ubuntu-latest
+
+    if: github.event.schedule == '0 0 * * 0'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clean up tangling images
+        uses: ./.github/actions/cleanup-images
+        with:
+          token: ${{ secrets.HCLOUD_TOKEN }}
