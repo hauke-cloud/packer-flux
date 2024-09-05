@@ -71,7 +71,7 @@ build {
   ]
 
   provisioner "file" {
-    source      = "templates/src/flux-worker/wait-for-kubernetes"
+    source      = "src/flux-worker/wait-for-kubernetes"
     destination = "/usr/local/bin/wait-for-kubernetes"
   }
 
