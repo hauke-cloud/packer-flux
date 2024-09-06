@@ -16,13 +16,6 @@ Packer template to build server with FluxV2 support
 - [Contact](#contact)
 
 ## 🚀 Getting started
-Before you begin, ensure you have the following:
-
-- A Kubernetes cluster
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) installed and configured to interact with your cluster
-- The [fluxv2](https://github.com/fluxcd/flux2) operator installed
-- Flux CLI installed [fluxv2-cli](https://github.com/fluxcd/flux2)
-
 To get started, you need to clone the repository containing this `README.md` file. Follow the steps below:
 
 ### 1. Clone the repository
@@ -50,18 +43,16 @@ ls -la
 This will display all the files and directories in the cloned repository.
 
 
-
-
 ## 📄 License
 
 This Project is licensed under the GNU General Public License v3.0
 
 - see the [LICENSE](LICENSE) file for details.
 
+
 ## :coffee: Contributing
 
 To become a contributor, please check out the [CONTRIBUTING](CONTRIBUTING.md) file.
-## :email: Contact
 
-For any inquiries or support requests, please open an issue in this
-repository or contact us at [contact@hauke.cloud](mailto:contact@hauke.cloud).
+
+
