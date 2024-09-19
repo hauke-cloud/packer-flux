@@ -40,11 +40,12 @@ runs:
       shell: bash
       run: |
         echo "Processing payload..."
-        additional_vars=""
-        for key in $(echo ${{ toJson(inputs.trigger-payload) }} | jq -r 'keys[]'); do
-          value=$(echo ${{ toJson(inputs.trigger-payload) }} | jq -r ".[$key]")
-          additional_vars+=" -var $key=$value"
-        done
+        payload='${{ inputs.trigger-payload }}'
+
+        if [[ "${payload}" != "null"  ]]; then
+          additional_vars=$(echo "$payload" | jq -r 'to_entries | map("-var \(.key)=\(.value)") | join(" ")')
+          echo "Adding additional settings: ${additional_vars}"
+        fi
 
         packer validate \
           -var hcloud_token=${{ inputs.token }} \
@@ -57,11 +58,12 @@ runs:
       shell: bash
       run: |
         echo "Processing payload..."
-        additional_vars=""
-        for key in $(echo ${{ toJson(inputs.trigger-payload) }} | jq -r 'keys[]'); do
-          value=$(echo ${{ toJson(inputs.trigger-payload) }} | jq -r ".[$key]")
-          additional_vars+=" -var $key=$value"
-        done
+        payload='${{ inputs.trigger-payload }}'
+
+        if [[ "${payload}" != "null" ]]; then
+          additional_vars=$(echo "$payload" | jq -r 'to_entries | map("-var \(.key)=\(.value)") | join(" ")')
+          echo "Adding additional settings: ${additional_vars}"
+        fi
 
         packer build \
           -color=false \
